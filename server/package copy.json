@@ -1,0 +1,20 @@
+{
+  "name": "minecraft-bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "bot.js",
+  "scripts": {
+    "clean": "del /s /q dist",
+    "build": "tsc --build",
+    "start": "npm run clean && npm run build && node dist/base/index.js",
+    "startNoClean": "npm run build && node dist/base/index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^14.15.3",
+    "glob": "^11.0.0",
+    "node-schedule": "^2.1.1",
+    "rcon-client": "^4.2.4"
+  }
+}
