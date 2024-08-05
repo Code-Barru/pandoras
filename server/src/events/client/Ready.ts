@@ -20,10 +20,6 @@ export default class Ready extends Event {
             body: commands
         });
         console.log(`Successfully set ${setCommands.length} commands.`);
-        this.client.user?.setPresence({
-            activities: [{ name: `Minecraft`, type: ActivityType.Playing }],
-            status: 'online',
-          });
     }
 
     private GetJson(commands: Collection<string, Command>) {

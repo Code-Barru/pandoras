@@ -9,7 +9,7 @@ export default class Event implements IEvent{
     description: string;
     once: boolean;
 
-    constructor(client: any, options: IEventOptions){
+    constructor(client: CustomClient, options: IEventOptions){
         this.client = client;
         this.name = options.name;
         this.description = options.description;

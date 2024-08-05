@@ -1,4 +1,6 @@
 data/config.json
+data/data.db
+data/data.db-journal
 dist/
 node_modules/
 dist/

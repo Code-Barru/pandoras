@@ -1,13 +1,17 @@
 import { Collection } from "discord.js";
-import IConfig from "./IConfig";
+import { PrismaClient } from "@prisma/client";
 import Command from "../classes/Command";
+import IConfig from "./IConfig";
 import SubCommand from "../classes/SubCommand";
+import TCPServer from "../classes/RATServer";
 
 export default interface ICustomClient {
-    config: IConfig;
     commands: Collection<string, Command>;
-    subCommands: Collection<string, SubCommand>;
+    config: IConfig;
     cooldowns: Collection<string, Collection<string, number>>;
+    database: PrismaClient;
+    ratServer: TCPServer;
+    subCommands: Collection<string, SubCommand>;
 
     Init(): void;
     LoadHandlers(): void;
