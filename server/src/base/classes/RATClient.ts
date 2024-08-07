@@ -1,23 +1,26 @@
 import { Socket } from "net";
 import IRATClient from "../interfaces/IRATClient";
+import RATServer from "./RATServer";
 
 export default class RATClient implements IRATClient {
     connected: boolean;
+    ratServer: RATServer;
     socket: Socket;
     uuid: string;
 
-    constructor(socket: Socket) {
-        this.socket = socket;
+    constructor(socket: Socket, ratServer: RATServer) {
         this.connected = false;
+        this.ratServer = ratServer;
+        this.socket = socket;
         this.uuid = '';
         // check for uuid, if no uuid, gives him one
     }
     send(data: string): void {
-        try {
-            this.socket.write(data);
-        } catch (error) {
-            console.error(`Error sending data to socket: ${error}`);
-        }
+        this.socket.write(data, (error) => {
+            if (error) {
+                console.error(`Error sending data: ${error}`);
+            }
+        });
     }
     async receive(): Promise<any> {
         try {

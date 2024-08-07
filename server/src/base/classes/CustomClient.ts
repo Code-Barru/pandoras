@@ -6,7 +6,7 @@ import IConfig from "../interfaces/IConfig";
 import Handler from "./Handler";
 import Command from "./Command";
 import SubCommand from "./SubCommand";
-import TCPServer from "./RATServer";
+import RATServer from "./RATServer";
 
 export default class CustomClient extends Client implements ICustomClient {
     commands: Collection<string, Command>;
@@ -14,7 +14,7 @@ export default class CustomClient extends Client implements ICustomClient {
     cooldowns: Collection<string, Collection<string, number>>;
     database: PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>;
     handler: Handler;
-    ratServer: TCPServer;
+    ratServer: RATServer;
     subCommands: Collection<string, SubCommand>;
 
 
@@ -26,7 +26,7 @@ export default class CustomClient extends Client implements ICustomClient {
         this.cooldowns = new Collection();
         this.database = new PrismaClient();
         this.handler = new Handler(this);
-        this.ratServer = new TCPServer(this);
+        this.ratServer = new RATServer(this);
         this.subCommands = new Collection();
     }
     
