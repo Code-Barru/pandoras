@@ -1,5 +1,8 @@
 {
-    "token": "token",
+    "categoryId": "categoryId",
     "discordClientId": "discordClientId",
-    "guildId": "guildId"
+    "guildId": "guildId",
+    "tcpHost": "tcpHost",
+    "tcpPort": "tcpPort",
+    "token": "token"
 }
