@@ -8,12 +8,17 @@ export default class RATClient implements IRATClient {
     socket: Socket;
     uuid: string;
 
-    constructor(socket: Socket, ratServer: RATServer) {
+    constructor(socket: Socket, ratServer: RATServer, uuid: string) {
         this.connected = false;
         this.ratServer = ratServer;
         this.socket = socket;
-        this.uuid = '';
-        // check for uuid, if no uuid, gives him one
+        this.uuid = uuid;
+        
+        this.socket.on('close', async () => {
+            this.connected = false;
+            // remove the client from the clients array
+            this.ratServer.removeClient(this);
+        });
     }
     send(data: string): void {
         this.socket.write(data, (error) => {
@@ -42,5 +47,8 @@ export default class RATClient implements IRATClient {
     isConnected(): boolean {
         throw new Error("Method not implemented.");
     }
-    
+
+    disconnect(): void {
+        this.socket.destroy();
+    }
 }

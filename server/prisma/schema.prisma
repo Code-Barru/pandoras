@@ -14,7 +14,7 @@ datasource db {
 }
 
 model User {
-  uuid        String   @id @default(uuid())
-  name        String?
-  connected   Boolean  @default(false)
+  uuid      String  @id @default(uuid())
+  connected Boolean @default(false)
+  channelId String?
 }
