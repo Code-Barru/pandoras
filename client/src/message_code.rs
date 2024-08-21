@@ -3,8 +3,19 @@
 
 #[derive(Clone, Copy, Debug)]
 pub enum MessageCode {
-    ASK_UUID = 0,
-    AUTH_UUID = 1,
-    NUKE = 63,
-    SYS_INFO = 64,
+    AskUuid = 0,
+    AuthUuid = 1,
+    Nuke = 63,
+    SysInfo = 64,
+}
+impl From<u8> for MessageCode {
+    fn from(value: u8) -> Self {
+        match value {
+            0 => MessageCode::AskUuid,
+            1 => MessageCode::AuthUuid,
+            63 => MessageCode::Nuke,
+            64 => MessageCode::SysInfo,
+            _ => panic!("Invalid MessageCode value"),
+        }
+    }
 }

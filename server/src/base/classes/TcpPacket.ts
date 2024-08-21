@@ -15,10 +15,25 @@ export default class TcpPacket {
         }
         
         this.code = code;
-
+        if (payload) {
+            this.payload = payload;
+            this.length = payload.length;
+        }
     }
 
 
     // function convert to uint8array
+    public toUint8Array(): Uint8Array {
+        if (this.length === undefined) {
+            throw new Error('Length must be defined');
+        }
+        let buffer = new Uint8Array(5 + (this.payload ? this.payload.length : 0));
+        buffer[0] = this.code;
+        Buffer.from(buffer.buffer).writeUInt32BE(this.length, 1);
+        if (this.payload) {
+            buffer.set(this.payload, 5);
+        }
+        return buffer;
+    }
     // function convert from uint8array
 }

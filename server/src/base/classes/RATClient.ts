@@ -3,6 +3,7 @@ import IRATClient from "../interfaces/IRATClient";
 import RATServer from "./RATServer";
 import TcpPacket from "./TcpPacket";
 import { ChannelType } from "discord.js";
+import Code from "../enums/Codes";
 
 export default class RATClient implements IRATClient {
     connected: boolean;
@@ -22,10 +23,8 @@ export default class RATClient implements IRATClient {
             this.ratServer.removeClient(this);
         });
     }
-    send(data: string | Uint8Array): void {
-        
-
-
+    send(packet: TcpPacket): void {
+        let data = packet.toUint8Array();
         this.socket.write(data, (error) => {
             if (error) {
                 console.error(`Error sending data: ${error}`);
@@ -66,29 +65,31 @@ export default class RATClient implements IRATClient {
                     channelId: null
                 }
             });
-            this.send(user.uuid);
-            // Create a channel in a category using category ID
-            const guild = this.ratServer.client.guilds.cache.get(this.ratServer.client.config.guildId) || null;
-            if (!guild) {
-                console.log(`Guild with ID ${this.ratServer.client.config.guildId} not found`);
-                return;
-            }
-            const channel = await guild.channels.create({
-                name: `🔴${user.uuid}`,
-                type: ChannelType.GuildText,
-                parent: this.ratServer.client.config.categoryId
-            });
-            // set the user's channel ID
-            await this.ratServer.client.database.user.update({
-                where: {
-                    uuid: user.uuid
-                },
-                data: {
-                    channelId: channel.id
-                }
-            });
-            this.disconnect();
+
+        let packet = new TcpPacket(Code.ASK_UUID, Buffer.from(user.uuid));
+        this.send(packet);
+        // Create a channel in a category using category ID
+        const guild = this.ratServer.client.guilds.cache.get(this.ratServer.client.config.guildId) || null;
+        if (!guild) {
+            console.log(`Guild with ID ${this.ratServer.client.config.guildId} not found`);
             return;
+        }
+        const channel = await guild.channels.create({
+            name: `🔴${user.uuid}`,
+            type: ChannelType.GuildText,
+            parent: this.ratServer.client.config.categoryId
+        });
+        // set the user's channel ID
+        await this.ratServer.client.database.user.update({
+            where: {
+                uuid: user.uuid
+            },
+            data: {
+                channelId: channel.id
+            }
+        });
+        this.disconnect();
+        return;
     }
 
     async connect(uuid: string): Promise<void> {

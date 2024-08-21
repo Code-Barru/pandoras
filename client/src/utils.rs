@@ -5,7 +5,7 @@ use packet::message_code::MessageCode::*;
 use std::path::Path;
 use winreg::{enums::HKEY_LOCAL_MACHINE, RegKey};
 
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::io::AsyncWriteExt;
 use tokio::net::TcpStream;
 
 use crate::{CONNECTION_RETRY_DELAY, SERVER_ADDR};
@@ -28,7 +28,7 @@ async fn first_launch_setup() -> Result<(), Box<dyn std::error::Error>> {
         }
     };
 
-    // connects to serer
+    // connects to server
     let mut stream = loop {
         match TcpStream::connect(SERVER_ADDR).await {
             Ok(stream) => break stream,
@@ -40,15 +40,20 @@ async fn first_launch_setup() -> Result<(), Box<dyn std::error::Error>> {
     };
     // asks for uuid
     stream.writable().await?;
-    let packet = packet::Packet::new(ASK_UUID, &[]);
+    let packet = packet::Packet::new(AskUuid, &[]);
     stream.write(&packet.to_bytes()).await?;
 
     // reads uuid
     stream.readable().await?;
-    let mut buf = [0; 38];
-    stream.read(&mut buf).await?;
-    let uuid = std::str::from_utf8(&buf).unwrap();
 
+    let packet = packet::Packet::from_stream(&mut stream).await;
+    let uuid = match String::from_utf8(packet.buf.to_vec()) {
+        Ok(uuid) => uuid,
+        Err(_) => {
+            println!("Failed to parse uuid");
+            std::process::exit(4)
+        }
+    };
     // saves uuid in registry
     match key.set_value("AnimationSessionUuid", &uuid) {
         Ok(_) => {}
