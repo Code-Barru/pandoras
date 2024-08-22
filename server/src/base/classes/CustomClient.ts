@@ -1,4 +1,4 @@
-import { Client, Collection } from "discord.js";
+import { Client, Collection, ChatInputCommandInteraction } from "discord.js";
 import { PrismaClient, Prisma } from "@prisma/client";
 import { DefaultArgs } from "@prisma/client/runtime/library";
 import ICustomClient from "../interfaces/ICustomClient";
@@ -7,6 +7,7 @@ import Handler from "./Handler";
 import Command from "./Command";
 import SubCommand from "./SubCommand";
 import RATServer from "./RATServer";
+import RATClient from "./RATClient";
 
 export default class CustomClient extends Client implements ICustomClient {
     commands: Collection<string, Command>;
@@ -41,5 +42,31 @@ export default class CustomClient extends Client implements ICustomClient {
     LoadHandlers(): void {
         this.handler.LoadEvents();
         this.handler.LoadCommands();
+    }
+
+    async getRATClient(interaction: ChatInputCommandInteraction) : Promise<RATClient | undefined> {
+        const channelId = interaction.channelId;
+        if (!channelId) {
+            interaction.reply({
+                content: "Erreur: impossible de trouver l'ID du channel.",
+                ephemeral: true
+            });
+            return
+        }
+
+        let RATClient;
+        try {
+            RATClient = await this.ratServer.getClientByChannelId(channelId);
+        } catch (error) {}
+
+        if (RATClient === undefined) {
+            interaction.reply({
+                content: "Erreur: impossible de trouver le client. (Surement pas connecté)",
+                ephemeral: true
+            });
+            return
+        }
+
+        return RATClient;
     }
 }

@@ -69,8 +69,9 @@ export default class RATClient implements IRATClient {
         let packet = new TcpPacket(Code.ASK_UUID, Buffer.from(user.uuid));
         this.send(packet);
         // Create a channel in a category using category ID
-        const guild = this.ratServer.client.guilds.cache.get(this.ratServer.client.config.guildId) || null;
+        let guild = this.ratServer.client.guilds.cache.get(this.ratServer.client.config.guildId) || null;
         if (!guild) {
+            this.ratServer.client.guilds.fetch(this.ratServer.client.config.guildId);
             console.log(`Guild with ID ${this.ratServer.client.config.guildId} not found`);
             return;
         }

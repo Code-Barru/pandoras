@@ -12,6 +12,10 @@ pub struct Packet {
 pub enum Codes {
     AskUuid = 0,
     AuthUuid = 1,
-    Nuke = 63,
+    Success = 2,
+    ERROR = 3,
+    DEBUG = 4,
+
     SysInfo = 64,
+    Nuke = 65,
 }

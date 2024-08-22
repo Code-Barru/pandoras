@@ -10,7 +10,7 @@ use tokio::io::AsyncWriteExt;
 use tokio::net::TcpStream;
 
 mod types;
-use types::Codes::AuthUuid;
+use types::Codes;
 use types::Packet;
 
 mod utils;
@@ -40,13 +40,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
     stream.writable().await?;
 
     // send hello with uuid
-    let packet = Packet::new(AuthUuid, uuid.as_bytes());
+    let packet = Packet::new(Codes::AuthUuid, uuid.as_bytes());
     stream.write(&packet.to_bytes()).await?;
 
     loop {
         std::thread::sleep(std::time::Duration::from_secs(1));
         stream.readable().await?;
-        let p = Packet::from_stream(&mut stream).await;
-        println!("Packet: {:?}", p);
+
+        let packet = Packet::from_stream(&mut stream).await;
+        handler(packet, &mut stream).await;
     }
 }
