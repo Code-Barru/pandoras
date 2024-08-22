@@ -1,16 +1,10 @@
-#[path = "./message_code.rs"]
-pub mod message_code;
-use message_code::MessageCode;
+use super::Codes;
 use tokio::io::AsyncReadExt;
 
-#[derive(Debug)]
-pub struct Packet {
-    pub code: MessageCode,
-    pub size: u32,
-    pub buf: Box<[u8]>,
-}
+use super::Packet;
+
 impl Packet {
-    pub fn new(code: MessageCode, buf: &[u8]) -> Packet {
+    pub fn new(code: Codes, buf: &[u8]) -> Packet {
         let size = buf.len() as u32;
         Packet {
             code,
@@ -26,7 +20,7 @@ impl Packet {
         bytes.extend_from_slice(self.buf.as_ref());
         bytes
     }
-    #[allow(dead_code)]
+
     pub async fn from_stream(stream: &mut tokio::net::TcpStream) -> Packet {
         let mut code: [u8; 1] = [0; 1];
         let mut size: [u8; 4] = [0; 4];
@@ -52,7 +46,7 @@ impl Packet {
             }
         };
         Packet {
-            code: MessageCode::from(code[0]),
+            code: Codes::from(code[0]),
             size,
             buf: buf.into_boxed_slice(),
         }

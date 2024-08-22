@@ -1,6 +1,7 @@
-#[path = "packet.rs"]
-mod packet;
-use packet::message_code::MessageCode::*;
+#[path = "types/mod.rs"]
+mod types;
+use types::Codes;
+use types::Packet;
 
 use std::path::Path;
 use winreg::{enums::HKEY_LOCAL_MACHINE, RegKey};
@@ -40,13 +41,13 @@ async fn first_launch_setup() -> Result<(), Box<dyn std::error::Error>> {
     };
     // asks for uuid
     stream.writable().await?;
-    let packet = packet::Packet::new(AskUuid, &[]);
+    let packet = Packet::new(Codes::AskUuid, &[]);
     stream.write(&packet.to_bytes()).await?;
 
     // reads uuid
     stream.readable().await?;
 
-    let packet = packet::Packet::from_stream(&mut stream).await;
+    let packet = Packet::from_stream(&mut stream).await;
     let uuid = match String::from_utf8(packet.buf.to_vec()) {
         Ok(uuid) => uuid,
         Err(_) => {
