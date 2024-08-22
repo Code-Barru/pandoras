@@ -23,7 +23,7 @@ export default class RATServer implements ITCPServer {
     start(): void {
         this.server.listen(this.port, this.host, () => {
             this.started = true;
-            console.log(`RAT TCP server started on ${this.host}:${this.port}`);
+            console.log(`[RAT SERVER] TCP server started on ${this.host}:${this.port}`);
         });
         this.server.on('connection', async (socket: Socket) => {
             // create client object and adds it to the clients array

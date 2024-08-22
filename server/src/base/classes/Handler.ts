@@ -17,7 +17,7 @@ export default class Handler implements IHandler{
             const event: Event = new (await import(file)).default(this.client);
             
             if (!event.name)
-                return delete require.cache[require.resolve(file)] && console.log(`Event ${file} failed to load, missing name`);
+                return delete require.cache[require.resolve(file)] && console.log(`[DISCORD BOT] Event ${file} failed to load, missing name`);
             
             const execute = (...args: any) => event.Execute(...args);
             //@ts-ignore
@@ -34,7 +34,7 @@ export default class Handler implements IHandler{
         files.map(async (file:string) => {
             const command: Command | SubCommand = new (await import(file)).default(this.client);          
             if (!command.name)
-                return delete require.cache[require.resolve(file)] && console.log(`Command ${file} failed to load, missing name`);
+                return delete require.cache[require.resolve(file)] && console.log(`[DISCORD BOT] Command ${file} failed to load, missing name`);
 
             if (file.split("/").pop()?.split(".")[2])
                 return this.client.subCommands.set(command.name, command);

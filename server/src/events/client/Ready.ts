@@ -13,13 +13,13 @@ export default class Ready extends Event {
     }
 
     async Execute() {
-        console.log(`Logged in as ${this.client.user?.tag}.`);
+        console.log(`[DICSORD BOT] Logged in as ${this.client.user?.tag}.`);
         const commands = this.GetJson(this.client.commands);
         const rest = new REST().setToken(this.client.token!);
         const setCommands: any = await rest.put(Routes.applicationGuildCommands(this.client.config.discordClientId, this.client.config.guildId), {
             body: commands
         });
-        console.log(`Successfully set ${setCommands.length} commands.`);
+        console.log(`[DICSORD BOT] Successfully set ${setCommands.length} commands.`);
     }
 
     private GetJson(commands: Collection<string, Command>) {
