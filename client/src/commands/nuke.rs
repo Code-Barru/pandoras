@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::{path::Path, process::Command};
 use winreg::{enums::HKEY_LOCAL_MACHINE, RegKey};
 
 pub fn nuke() {
@@ -28,24 +28,6 @@ fn get_uuid() -> String {
 #[allow(dead_code)]
 fn remove_persistence() {
     // delete from startup
-    let service_name = "DwmAnimationService";
-    match std::process::Command::new("sc.exe")
-        .args(&["delete", service_name])
-        .output()
-    {
-        Ok(output) => {
-            if !output.status.success() {
-                let error_message = String::from_utf8_lossy(&output.stderr);
-                println!(
-                    "Failed to delete service {}: {}",
-                    service_name, error_message
-                );
-            }
-        }
-        Err(err) => {
-            println!("Failed to delete service {}: {}", service_name, err);
-        }
-    }
 
     let uuid = get_uuid();
     // delete subfolder in System32
@@ -57,6 +39,15 @@ fn remove_persistence() {
             println!("Failed to delete uuid directory")
         }
     }
+    let powershell_command = r#"
+        Unregister-ScheduledTask -TaskName "MyProgramAutoStart" -Confirm:$false
+    "#;
+
+    // Execute the PowerShell command
+    Command::new("powershell")
+        .args(&["-Command", powershell_command])
+        .output()
+        .expect("Failed to execute PowerShell command");
 }
 
 fn remove_reg_keys() {
