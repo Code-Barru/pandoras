@@ -23,6 +23,7 @@ Si la clée n'existe pas:
 ## Features
 
 AES-256 Encryption
+Persistence
 
 ## Commands
 

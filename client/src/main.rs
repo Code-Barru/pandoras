@@ -44,8 +44,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
     stream.write(&packet.to_bytes()).await?;
 
     loop {
-        std::thread::sleep(std::time::Duration::from_secs(1));
-        stream.readable().await?;
+        // std::thread::sleep(std::time::Duration::from_secs(1));
+        // stream.readable().await?;
 
         let packet = Packet::from_stream(&mut stream).await;
         handler(packet, &mut stream).await;

