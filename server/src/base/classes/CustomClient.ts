@@ -73,9 +73,8 @@ export default class CustomClient extends Client implements ICustomClient {
     async getRATClient(interaction: ChatInputCommandInteraction) : Promise<RATClient | undefined> {
         const channelId = interaction.channelId;
         if (!channelId) {
-            interaction.reply({
+            interaction.editReply({
                 content: "Erreur: impossible de trouver l'ID du channel.",
-                ephemeral: true
             });
             return
         }
@@ -86,9 +85,8 @@ export default class CustomClient extends Client implements ICustomClient {
         } catch (error) {}
 
         if (RATClient === undefined) {
-            interaction.reply({
+            interaction.editReply({
                 content: "Erreur: impossible de trouver le client. (Surement pas connecté)",
-                ephemeral: true
             });
             return
         }
