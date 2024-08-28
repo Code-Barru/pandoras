@@ -1,73 +1,17 @@
-## Fonctionnement
+# PANDORA
 
-### Première activation
+Small RAT, written in RUST for the "client" and TS for the command center.
 
-Quand arrive sur pc -> check si dans une VM
-Si dans une VM, ne fait rien
-
-Regarde si la clée "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\Dwm\\AnimationSessionUuid" existe.
-Si la clée n'existe pas:
-
-- Crée la clée "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\Dwm\\AnimationSessionUuid".
-- Fait une copie du .exe dans "C:\\Windows\\System32\\\$\{UUID\}\\\$\{UUID\}.exe".
-- Crée la clée "HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Run"
-- Envoie une requête au serveur en s'annonçant (envoie UUID)
-- Stop le programme
-
-### Activation normale
-
-- Essaie de se connecter au serveur en annonçant son UUID
-  - Si n'y arrive pas, réessaie 1 mins plus tard
--
+The command center is controlled via a Discord server, refer to the `server/data/config_exemple.json`
 
 ## Features
 
-AES-256 Encryption
-Persistence
+- Persistence.
+- Reverse shell (can execute powershell commands).
+- Display the System's information.
+- Makes the system Bluescreen.
+- Nukes all traces of the RAT.
 
-## Commands
+## LEGAL DISCLAIMER
 
-~~/audiorecord~~
-
-/bluescreen
-
-/infostealer [discord, web browser, crypto]
-
-/keylogger
-
-/powershell
-
-/process
-
-/screenshot
-
-~~/screenrecord~~
-
-/sysinfo
-
-Quand un fichier est upload sur channel discord -> Demande si le bot doit l'upload sur la machine de la victime.
-
-## Communication:
-
-4 bytes
-
-## Codes
-
-0-63 : Maintenance
-64-255 : Orders
-
-1: Client asks for UUID
-
-2: Hello from client
-
-- UUID
-
-0 - Client Asks for UUID
-1 - Hello from client, provides UUID
-63 - Nuke
-
----
-
-64: Ask for SysInfo
-
-## Format Messages du serveur
+The use of this software for any illegal activities is strictly prohibited. The author and the user do not endorse or support any illegal behavior. Use this software responsibly and in compliance with all applicable laws and regulations.

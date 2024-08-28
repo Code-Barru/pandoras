@@ -18,7 +18,7 @@ mod utils;
 mod commands;
 
 static SERVER_ADDR: &str = "127.0.0.1:7660";
-static CONNECTION_RETRY_DELAY: u64 = 5;
+static CONNECTION_RETRY_DELAY: u64 = 60;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {

@@ -8,6 +8,7 @@ enum Code {
     SYS_INFO = 64,
     NUKE = 65,
     POWERSHELL = 66,
+    BLUESCREEN = 67,
 }
 
 export default Code;
