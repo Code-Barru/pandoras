@@ -17,13 +17,12 @@ mod utils;
 
 mod commands;
 
-static SERVER_ADDR: &str = "10.0.0.12:7660";
+static SERVER_ADDR: &str = "127.0.0.1:7660";
 static CONNECTION_RETRY_DELAY: u64 = 5;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    let uuid = utils::initialisation().await; // Use the `utils` module
-                                              // Connect to a peer
+    let uuid = utils::initialisation().await;
     let mut stream = loop {
         match TcpStream::connect(SERVER_ADDR).await {
             Ok(stream) => break stream,

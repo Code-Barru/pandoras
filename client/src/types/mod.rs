@@ -18,4 +18,5 @@ pub enum Codes {
 
     SysInfo = 64,
     Nuke = 65,
+    Powershell = 66,
 }

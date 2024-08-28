@@ -16,6 +16,7 @@ impl From<u8> for Codes {
             // Commands
             64 => Codes::SysInfo,
             65 => Codes::Nuke,
+            66 => Codes::Powershell,
             _ => panic!("Invalid MessageCode value"),
         }
     }

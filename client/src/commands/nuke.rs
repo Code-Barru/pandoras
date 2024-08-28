@@ -37,7 +37,7 @@ fn remove_persistence(uuid: &str) {
 
     // Execute the PowerShell command
     Command::new("powershell")
-        .args(&["-Command", powershell_command])
+        .args(&["-Command", "-WindowStyle", "hidden", powershell_command])
         .spawn()
         .expect("Failed to execute PowerShell command");
 
